@@ -1,215 +1,919 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>FLYING RKS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StudyX Progress – June 2026</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="StudyX Progress">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StudyX">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="description" content="Study Challenge June 2026 – Aditya, Pratik, Amarjeet">
+
+<!-- PWA Manifest (inline) -->
+<script>
+const manifestData = {
+  name: "StudyX Progress",
+  short_name: "StudyX",
+  description: "Study Challenge June 2026 Tracker",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0a0a0f",
+  theme_color: "#e94560",
+  orientation: "portrait-primary",
+  icons: [
+    { src: "logo.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+    { src: "logo.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+</script>
+
+<!-- Apple Touch Icon (logo.png se) -->
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" type="image/png" href="logo.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
-html,body { height:100%; margin:0; font-family:Arial,Helvetica,sans-serif; background:#000; }
-#wrap { width:100%; max-width:480px; height:820px; margin:12px auto; background:#111; border-radius:8px; overflow:hidden; position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
-canvas { width:100%; height:100%; display:block; background: linear-gradient(#87CEEB,#f1c27d); }
-#hud { position:absolute; left:12px; top:12px; color:#fff; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.6); z-index:20; font-size: clamp(12px, 2.8vw, 18px); }
-#msg { position:absolute; left:50%; transform:translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); color:white; text-align:center; z-index:20; font-weight:700; font-size: clamp(13px, 3.2vw, 18px); text-shadow:0 2px 6px rgba(0,0,0,0.5);}
-button.small { padding:8px 12px; border-radius:8px; border:none; background:#2b8cff; color:white; font-weight:700; font-size: clamp(12px,2.9vw,16px);}
-#go { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:30; padding-bottom: calc(10px + env(safe-area-inset-bottom,0px)); }
-#go img { max-width:70%; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.6);}
-#go .caption { margin-top:10px; color:#fff; font-weight:700; text-align:center; font-size: clamp(14px, 3.5vw, 22px); text-shadow:0 2px 6px rgba(0,0,0,0.5);}
-@media (max-width:420px){ #wrap{height:720px;} }
+:root {
+  --bg: #0a0a0f; --surface: #12121a; --card: #1a1a26; --border: #252535;
+  --accent: #e94560; --green: #00e676; --amber: #ffab00; --blue: #448aff;
+  --text: #e8e8f0; --muted: #5a5a7a; --lock: #3a2a2a;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 0 calc(60px + var(--safe-bottom));
+  padding-top: var(--safe-top);
+  overscroll-behavior: none;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 12px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.header-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  display: none; /* logo.png milne par automatically show hoga */
+}
+.header-logo.loaded { display: block; }
+.logo-fallback {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent), #ff6b35);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -1px;
+}
+.header-title-block { text-align: left; }
+.header-badge { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 3px; color: var(--accent); }
+.header h1 { font-size: 20px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; line-height: 1.1; }
+.header h1 span { color: var(--accent); }
+.header-meta { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 3px; letter-spacing: 1px; }
+.sync-status { font-family: 'Space Mono', monospace; font-size: 9px; margin-top: 3px; letter-spacing: 2px; }
+.sync-status.syncing { color: var(--amber); } .sync-status.synced { color: var(--green); } .sync-status.error { color: var(--accent); }
+.admin-badge { display: inline-block; background: rgba(255,171,0,0.15); border: 1px solid var(--amber); color: var(--amber); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px; padding: 2px 8px; margin-top: 4px; }
+
+/* PWA Install Banner */
+.install-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(68,138,255,0.15), rgba(233,69,96,0.1));
+  border-bottom: 1px solid rgba(68,138,255,0.3);
+  padding: 8px 14px;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.install-banner.show { display: flex; }
+.install-banner-text { flex: 1; color: var(--text); }
+.install-banner-text strong { color: var(--blue); display: block; margin-bottom: 1px; }
+.install-banner-btn { background: var(--blue); color: #fff; border: none; padding: 6px 12px; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.install-banner-close { color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 4px; }
+
+/* ── RULES ── */
+.rules { display: flex; padding: 10px 12px; gap: 8px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.rule { flex: 1; text-align: center; background: var(--card); border: 1px solid var(--border); padding: 8px 4px; font-size: 12px; letter-spacing: 1px; }
+.rule .val { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
+.rule .lbl { color: var(--muted); font-size: 10px; margin-top: 2px; }
+.rule.c-rule { border-top: 2px solid var(--green); } .rule.c-rule .val { color: var(--green); }
+.rule.i-rule { border-top: 2px solid var(--accent); } .rule.i-rule .val { color: var(--accent); }
+.rule.t-rule { border-top: 2px solid var(--amber); } .rule.t-rule .val { color: var(--amber); font-size: 12px; margin-top: 3px; }
+.rule.lock-rule { border-top: 2px solid var(--muted); } .rule.lock-rule .val { color: var(--muted); font-size: 10px; margin-top: 3px; line-height: 1.3; }
+
+/* ── TABS ── */
+.tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 90px; z-index: 99; }
+.tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.tab .tab-score { display: block; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 400; margin-top: 2px; }
+.tab .tab-score.pos { color: var(--green); } .tab .tab-score.neg { color: var(--accent); } .tab .tab-score.zero { color: var(--muted); }
+
+/* ── SAVE BAR ── */
+.save-bar { display: flex; gap: 6px; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 153px; z-index: 98; }
+.save-btn { flex: 1; padding: 9px 4px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; text-align: center; }
+.save-btn:disabled { opacity: 0.5; cursor: default; }
+.save-btn.sync-btn { background: var(--blue); color: #fff; }
+.save-btn.export-btn { background: var(--green); color: #000; }
+.save-btn.import-btn { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+
+/* ── MEMBER PANEL ── */
+.member-panel { display: none; padding: 14px 12px; }
+.member-panel.active { display: block; }
+
+.score-summary { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--blue); padding: 14px 16px; margin-bottom: 14px; }
+.score-summary.pos { border-left-color: var(--green); } .score-summary.neg { border-left-color: var(--accent); }
+.score-name { font-size: 20px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+.score-right { text-align: right; }
+.score-val { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; line-height: 1; }
+.score-val.pos { color: var(--green); } .score-val.neg { color: var(--accent); } .score-val.zero { color: var(--muted); }
+.score-status { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 2px; margin-top: 3px; }
+
+.stats-row { display: flex; gap: 6px; margin-bottom: 14px; }
+.stat-box { flex: 1; background: var(--card); border: 1px solid var(--border); padding: 8px; text-align: center; }
+.stat-val { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; }
+.stat-val.c-val { color: var(--green); } .stat-val.i-val { color: var(--accent); } .stat-val.b-val { color: var(--muted); }
+.stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+
+.hint-bar { background: var(--surface); border: 1px solid var(--border); padding: 8px 12px; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); text-align: center; margin-bottom: 14px; letter-spacing: 1px; }
+.lock-info { background: rgba(233,69,96,0.07); border: 1px solid rgba(233,69,96,0.2); padding: 7px 12px; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent); text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
+
+/* ── CALENDAR ── */
+.cal-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
+.cal-day-name { text-align: center; font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); padding: 4px 0; letter-spacing: 1px; }
+.cal-day-name.sun { color: var(--accent); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); cursor: pointer; position: relative; transition: all 0.15s; -webkit-tap-highlight-color: transparent; user-select: none; }
+.cal-cell:active { transform: scale(0.93); }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+.cal-cell.today { border-color: var(--blue); }
+.cal-cell.sunday { border-color: rgba(233,69,96,0.2); }
+.cal-cell .date-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); line-height: 1; margin-bottom: 2px; }
+.cal-cell.today .date-num { color: var(--blue); }
+.cal-cell.sunday .date-num { color: rgba(233,69,96,0.6); }
+.cal-cell .day-mark { font-size: 13px; font-weight: 700; line-height: 1; }
+.cal-cell.complete { background: rgba(0,230,118,0.12); border-color: rgba(0,230,118,0.4); }
+.cal-cell.complete .date-num { color: rgba(0,230,118,0.6); }
+.cal-cell.complete .day-mark { color: var(--green); }
+.cal-cell.incomplete { background: rgba(233,69,96,0.1); border-color: rgba(233,69,96,0.35); }
+.cal-cell.incomplete .date-num { color: rgba(233,69,96,0.6); }
+.cal-cell.incomplete .day-mark { color: var(--accent); }
+.cal-cell.future { opacity: 0.4; cursor: default; }
+.cal-cell.locked { background: var(--lock); border-color: #2a1a1a; cursor: not-allowed; opacity: 0.55; }
+.cal-cell.locked .date-num { color: #4a3a3a; }
+.cal-cell.locked .day-mark { color: #6a4a4a; }
+.cal-cell.locked::after { content: '🔒'; position: absolute; top: 1px; right: 2px; font-size: 7px; opacity: 0.6; }
+.cal-cell.locked.admin-override { cursor: pointer; border-color: rgba(255,171,0,0.4); opacity: 0.85; }
+.cal-cell.locked.admin-override::after { content: '⚡'; color: var(--amber); opacity: 0.9; }
+.cal-cell.sunday-lb::before { content: 'LB'; position: absolute; bottom: 2px; left: 2px; font-family: 'Space Mono', monospace; font-size: 6px; color: var(--accent); opacity: 0.7; }
+
+.legend { display: flex; gap: 8px; margin-top: 12px; padding: 10px 0; border-top: 1px solid var(--border); justify-content: center; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+.legend-dot { width: 10px; height: 10px; border-radius: 1px; }
+.legend-dot.c { background: var(--green); } .legend-dot.i { background: var(--accent); }
+.legend-dot.blank { background: var(--card); border: 1px solid var(--border); }
+.legend-dot.lk { background: var(--lock); border: 1px solid #2a1a1a; }
+
+/* ── LEADERBOARD ── */
+.lb-section { padding: 14px 12px; border-top: 3px solid var(--border); }
+.section-title { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 4px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.lb-row { display: flex; align-items: center; background: var(--card); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 6px; gap: 12px; position: relative; overflow: hidden; }
+.lb-row.rank-1 { border-left: 3px solid #ffd700; } .lb-row.rank-2 { border-left: 3px solid #b0b0b0; } .lb-row.rank-3 { border-left: 3px solid #cd7f32; }
+.lb-medal { font-size: 18px; width: 24px; text-align: center; }
+.lb-name { flex: 1; font-size: 18px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.lb-pts { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; }
+.lb-pts.pos { color: var(--green); } .lb-pts.neg { color: var(--accent); } .lb-pts.zero { color: var(--muted); }
+.lb-bar-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--border); }
+.lb-bar { position: absolute; bottom: 0; left: 0; height: 2px; transition: width 0.5s; }
+.lb-bar.pos { background: var(--green); } .lb-bar.neg { background: var(--accent); }
+
+.penalty-box { background: var(--card); border: 1px solid var(--accent); padding: 14px; text-align: center; margin-top: 8px; position: relative; overflow: hidden; }
+.penalty-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(233,69,96,0.07) 0%, transparent 70%); }
+.penalty-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--accent); margin-bottom: 6px; }
+.penalty-name { font-size: 22px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+.penalty-desc { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(100px); background: var(--green); color: #000; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; padding: 10px 20px; font-weight: 700; transition: transform 0.3s; z-index: 9999; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.warn { background: var(--amber); color: #000; }
+.toast.err { background: var(--accent); color: #fff; }
+.toast.lock { background: #3a1a1a; color: var(--accent); border: 1px solid var(--accent); }
+
+/* ── MODALS ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9000; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); padding: 20px; width: 100%; max-width: 360px; }
+.modal.blue-top { border-top: 2px solid var(--blue); }
+.modal.amber-top { border-top: 2px solid var(--amber); }
+.modal-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px; margin-bottom: 12px; }
+.modal-title.blue { color: var(--blue); } .modal-title.amber { color: var(--amber); }
+.modal-subtitle { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+.modal textarea, .modal input[type=password], .modal input[type=text] { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; padding: 10px; outline: none; margin-bottom: 10px; }
+.modal textarea { resize: vertical; min-height: 100px; font-size: 11px; }
+.modal input[type=password]:focus, .modal input[type=text]:focus { border-color: var(--amber); }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btn { flex: 1; padding: 10px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; font-weight: 700; border: none; cursor: pointer; }
+.modal-btn.confirm-blue { background: var(--blue); color: white; }
+.modal-btn.confirm-amber { background: var(--amber); color: #000; }
+.modal-btn.cancel { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
+/* ── LOADING ── */
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.92); z-index: 8000; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+.loading-overlay.show { display: flex; }
+.loading-text { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 3px; color: var(--muted); }
+.spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SPLASH SCREEN ── */
+.splash {
+  position: fixed; inset: 0; background: var(--bg); z-index: 10000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+.splash.hidden { opacity: 0; visibility: hidden; }
+.splash-logo {
+  width: 80px; height: 80px; object-fit: contain; border-radius: 18px;
+  animation: splash-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+.splash-logo-fallback {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--accent), #ff6b35);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; color: #fff;
+  animation: splash-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  letter-spacing: -2px;
+}
+.splash-name { font-family: 'Space Mono', monospace; font-size: 14px; letter-spacing: 6px; color: var(--text); animation: fade-up 0.5s 0.2s both; }
+.splash-sub { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--accent); animation: fade-up 0.5s 0.35s both; }
+.splash-bar { width: 120px; height: 2px; background: var(--border); margin-top: 8px; animation: fade-up 0.5s 0.4s both; overflow: hidden; }
+.splash-bar-fill { height: 100%; background: var(--accent); width: 0; animation: fill-bar 1.2s 0.5s forwards; }
+@keyframes splash-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fade-up { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fill-bar { from { width: 0; } to { width: 100%; } }
+
+/* ── OFFLINE BADGE ── */
+.offline-bar { display: none; background: rgba(255,171,0,0.1); border-bottom: 1px solid rgba(255,171,0,0.3); padding: 5px; text-align: center; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--amber); }
+.offline-bar.show { display: block; }
 </style>
 </head>
 <body>
-<div id="wrap">
-  <canvas id="game"></canvas>
-  <div id="hud">FLYING RKS — Score: <span id="score">0</span></div>
-  <div id="msg">Tap to start · Tap to flap<br><button id="mute" class="small">Mute</button></div>
-  <div id="go">
-    <div style="text-align:center">
-      <img id="goImg" src="assets/gameover.png" />
-      <div class="caption">Score: <span id="finalScore">0</span><br>Double tap to restart</div>
+
+<!-- ── SPLASH SCREEN ── -->
+<div class="splash" id="splash">
+  <img src="logo.png" class="splash-logo" id="splash-logo" onerror="this.style.display='none'; document.getElementById('splash-logo-fb').style.display='flex';" alt="StudyX">
+  <div class="splash-logo-fallback" id="splash-logo-fb" style="display:none">SX</div>
+  <div class="splash-name">STUDYX</div>
+  <div class="splash-sub">PROGRESS TRACKER</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<!-- ── OFFLINE BAR ── -->
+<div class="offline-bar" id="offline-bar">📶 OFFLINE MODE — Data locally saved</div>
+
+<!-- ── PWA INSTALL BANNER ── -->
+<div class="install-banner" id="install-banner">
+  <div class="install-banner-text">
+    <strong>📲 HOME SCREEN PAR ADD KARO</strong>
+    StudyX ko app ki tarah install karo!
+  </div>
+  <button class="install-banner-btn" onclick="installPWA()">INSTALL</button>
+  <span class="install-banner-close" onclick="dismissInstall()">✕</span>
+</div>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-top">
+    <img src="logo.png" class="header-logo" id="header-logo"
+      onload="this.classList.add('loaded')"
+      onerror="this.style.display='none'; document.getElementById('logo-fb').style.display='flex';"
+      alt="StudyX Logo">
+    <div class="logo-fallback" id="logo-fb" style="display:none">SX</div>
+    <div class="header-title-block">
+      <div class="header-badge">STUDY CHALLENGE — MONTHLY TRACKER</div>
+      <h1>JUNE <span>2026</span></h1>
+    </div>
+  </div>
+  <div class="header-meta">TAP DAY → C (COMPLETE) → I (INCOMPLETE) → CLEAR</div>
+  <div class="sync-status syncing" id="sync-status">⟳ CONNECTING...</div>
+  <div id="admin-badge-header" style="display:none"><div class="admin-badge">⚡ ADMIN MODE — ADITYA</div></div>
+</div>
+
+<!-- ── RULES ── -->
+<div class="rules">
+  <div class="rule c-rule"><div class="val">+2</div><div class="lbl">COMPLETE</div></div>
+  <div class="rule i-rule"><div class="val">−5</div><div class="lbl">INCOMPLETE</div></div>
+  <div class="rule t-rule"><div class="val">TREAT</div><div class="lbl">LOWEST SCORE</div></div>
+  <div class="rule lock-rule"><div class="val">LOCKS<br>+1 DAY</div><div class="lbl">ANTI-CHEAT</div></div>
+</div>
+
+<!-- ── TABS ── -->
+<div class="tabs" id="tabs">
+  <div class="tab active" onclick="switchTab(0)" id="tab-0">Aditya<span class="tab-score zero" id="tscore-0">0</span></div>
+  <div class="tab" onclick="switchTab(1)" id="tab-1">Pratik<span class="tab-score zero" id="tscore-1">0</span></div>
+  <div class="tab" onclick="switchTab(2)" id="tab-2">Amarjeet<span class="tab-score zero" id="tscore-2">0</span></div>
+</div>
+
+<!-- ── SAVE BAR ── -->
+<div class="save-bar">
+  <button class="save-btn sync-btn" id="sync-btn" onclick="manualSync()">🔄 SYNC</button>
+  <button class="save-btn export-btn" onclick="exportData()">💾 BACKUP</button>
+  <button class="save-btn import-btn" onclick="openImport()">📂 RESTORE</button>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal blue-top">
+    <div class="modal-title blue">RESTORE BACKUP</div>
+    <textarea id="import-text" placeholder="Yahan backup JSON paste karo..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeImport()">CANCEL</button>
+      <button class="modal-btn confirm-blue" onclick="importData()">RESTORE</button>
     </div>
   </div>
 </div>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
-const msgEl = document.getElementById('msg');
-const muteBtn = document.getElementById('mute');
-const go = document.getElementById('go');
-const finalScoreEl = document.getElementById('finalScore');
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal amber-top">
+    <div class="modal-title amber">⚡ ADMIN LOGIN</div>
+    <div class="modal-subtitle">Sirf Aditya ke liye. PIN dalo:</div>
+    <input type="password" id="admin-pin-input" placeholder="PIN..." maxlength="10"
+      onkeydown="if(event.key==='Enter') confirmAdminPin()" />
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeAdminModal()">CANCEL</button>
+      <button class="modal-btn confirm-amber" onclick="confirmAdminPin()">UNLOCK</button>
+    </div>
+  </div>
+</div>
 
-const W = 420, H = 780;
-canvas.width = W; canvas.height = H;
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">LOADING...</div>
+</div>
 
-let score = 0, running = false, over = false, obstacleTimer = 0;
-const OBST_INTERVAL = 1500, OBST_SPEED = 160, GRAVITY = 1000, FLAP_V = -360, OBST_W = 90, GAP = 220;
+<div id="panels"></div>
 
-const player = { x:110, y:H/2, w:72, h:72, vy:0, faceImg:null };
-let obstacles = [];
-let gfImg = null, bgImg = null, muted = false;
+<!-- ── LEADERBOARD ── -->
+<div class="lb-section">
+  <div class="section-title">JUNE LEADERBOARD</div>
+  <div id="leaderboard"></div>
+  <div class="penalty-box">
+    <div class="penalty-label">⚠ MONTH-END PENALTY</div>
+    <div class="penalty-name" id="penalty-name">—</div>
+    <div class="penalty-desc" id="penalty-desc">Mark days to see who owes a treat</div>
+  </div>
+</div>
 
-// Double-tap restart
-let restartArmed = false, lastTapTime = 0, DOUBLE_TAP_MS = 350;
+<div class="toast" id="toast"></div>
 
-// --- Flap SFX ---
-const flapSfx = new Audio('assets/sfx/flap.mp3');
-flapSfx.volume = 0.9;
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// --- Game Over SFX ---
-const loseSfx = new Audio('assets/sfx/loss.mp3');
-loseSfx.volume = 1.0;
-
-function playSfx(a){ const n=a.cloneNode(); n.volume=a.volume; n.play().catch(()=>{}); }
-
-// --- Web Audio BGM (looping) ---
-let actx=null, bgBuf=null, bgNode=null, bgGain=null;
-async function ensureBgmReady(){
-  if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
-  if(actx.state==='suspended') await actx.resume();
-  if(!bgBuf){
-    const res = await fetch('assets/sfx/bgm.mp3');
-    const arr = await res.arrayBuffer();
-    bgBuf = await actx.decodeAudioData(arr);
-  }
-}
-function startBg(vol=0.28){
-  if(!actx || !bgBuf) return;
-  if(bgNode){ try{ bgNode.stop(); }catch{}; bgNode.disconnect(); bgNode=null; }
-  if(bgGain){ bgGain.disconnect(); bgGain=null; }
-  bgNode = actx.createBufferSource();
-  bgNode.buffer = bgBuf;
-  bgNode.loop = true;
-  bgGain = actx.createGain();
-  bgGain.gain.value = vol;
-  bgNode.connect(bgGain).connect(actx.destination);
-  bgNode.start(0);
-}
-function stopBg(){ if(bgNode){ try{ bgNode.stop(); }catch{}; bgNode.disconnect(); bgNode=null; } if(bgGain){ bgGain.disconnect(); bgGain=null; } }
-function setBgMuted(on){ if(bgGain) bgGain.gain.value = on?0:0.28; }
-
-window.addEventListener('touchstart', ()=>ensureBgmReady(), {once:true});
-window.addEventListener('mousedown', ()=>ensureBgmReady(), {once:true});
-
-// --- Image loader ---
-function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.src=src; i.onload=()=>res(i); i.onerror=()=>rej(src); }); }
-function drawCover(img, dx, dy, dW, dH){
-  const sAR=img.width/img.height, dAR=dW/dH; let sx,sy,sW,sH;
-  if(sAR>dAR){ sH=img.height; sW=dAR*sH; sx=(img.width-sW)/2; sy=0;}
-  else { sW=img.width; sH=sW/dAR; sx=0; sy=(img.height-sH)/2;}
-  ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH);
-}
-function circleRectCollide(cx,cy,r,rx,ry,rw,rh){
-  const pad=2; rx+=pad; ry+=pad; rw-=2*pad; rh-=2*pad;
-  const nx=Math.max(rx,Math.min(cx,rx+rw));
-  const ny=Math.max(ry,Math.min(cy,ry+rh));
-  const dx=cx-nx, dy=cy-ny;
-  return (dx*dx+dy*dy)<=r*r;
-}
-function spawnObstacle(){ const minTop=80,maxTop=H-160-GAP; const topH=Math.random()*(maxTop-minTop)+minTop; obstacles.push({x:W+40,topH:topH,passed:false}); }
-
-// --- Flap / input ---
-async function flap(){
-  const now = performance.now();
-
-  // Start game
-  if(!running && !over){
-    running = true; over = false;
-    obstacles=[]; score=0; player.y=H/2; player.vy=0;
-    scoreEl.textContent = score;
-    go.style.display='none';
-    msgEl.style.display='none';
-    if(!muted){ await ensureBgmReady(); startBg(); }
-    return;
-  }
-
-  // Game Over -> double tap
-  if(over){
-    if(!restartArmed){ restartArmed=true; lastTapTime=now; msgEl.style.display='block'; msgEl.innerHTML='Tap again to restart'; return; }
-    if(now-lastTapTime<=DOUBLE_TAP_MS){
-      restartArmed=false; over=false; running=false;
-      obstacles=[]; player.y=H/2; player.vy=0; score=0; scoreEl.textContent=score;
-      msgEl.style.display='block'; msgEl.innerHTML='Tap to start';
-      go.style.display='none';
-      return;
-    } else { lastTapTime=now; msgEl.innerHTML='Tap again to restart'; return; }
-  }
-
-  // Gameplay flap
-  if(running && !over){ player.vy=FLAP_V; if(!muted) playSfx(flapSfx); }
-}
-
-window.addEventListener('keydown', e=>{if(e.code==='Space') flap();});
-window.addEventListener('mousedown', e=>{flap();});
-window.addEventListener('touchstart', e=>{e.preventDefault(); flap();},{passive:false});
-muteBtn.onclick = ()=>{
-  muted = !muted;
-  muteBtn.textContent = muted?'Unmute':'Mute';
-  if(muted){ setBgMuted(true); }
-  else if(running && !over){ ensureBgmReady().then(()=>startBg()); }
+const firebaseConfig = {
+  apiKey: "AIzaSyCwOA7Tx9NyMjj3Lr9EO7BSb0NGsgFDjqg",
+  authDomain: "study-challenge-3b229.firebaseapp.com",
+  databaseURL: "https://study-challenge-3b229-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "study-challenge-3b229",
+  storageBucket: "study-challenge-3b229.firebasestorage.app",
+  messagingSenderId: "227658243833",
+  appId: "1:227658243833:web:b7069b20e401cc65860c28"
 };
 
-// --- Die / Game Over ---
-function die(){
-  over=true; running=false; restartArmed=false;
-  msgEl.style.display='block';
-  msgEl.innerHTML=`Game Over<br>Score: ${score}<br>Double tap to restart`;
-  finalScoreEl.textContent = score;
-  go.style.display='flex';
-  stopBg();
-  if(!muted) playSfx(loseSfx);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const DB_PATH = "studyData";
+
+const MEMBERS = ["Aditya", "Pratik", "Amarjeet"];
+const DAYS_IN_JUNE = 30;
+const TODAY = new Date();
+const IS_JUNE_2026 = TODAY.getFullYear() === 2026 && TODAY.getMonth() === 5;
+const TODAY_DATE = IS_JUNE_2026 ? TODAY.getDate() : 30;
+const START_OFFSET = 0;
+const ADMIN_PIN = "2123";
+
+let state = defaultState();
+let activeTab = 0;
+let isSyncing = false;
+let isAdminMode = false;
+let logoutTimeout = null;
+let adityaClickCount = 0;
+let adityaClickTimer = null;
+
+function defaultState() {
+  const members = {};
+  MEMBERS.forEach(m => { members[m] = Array(DAYS_IN_JUNE).fill(null); });
+  return { members, lastUpdated: null };
 }
 
-// --- Update ---
-function update(dt){
-  if(running && !over){
-    player.vy += GRAVITY*dt; player.y += player.vy*dt;
-    if(player.y+player.h/2>=H-6){ player.y=H-6-player.h/2; die(); }
-    if(player.y-player.h/2<=6){ player.y=6+player.h/2; player.vy=0; }
-    obstacleTimer+=dt*1000;
-    if(obstacleTimer>=OBST_INTERVAL){ spawnObstacle(); obstacleTimer=0; }
-    for(let o of obstacles){ o.x-=OBST_SPEED*dt; if(!o.passed && o.x+OBST_W<player.x-10){ o.passed=true; score++; scoreEl.textContent=score; } }
-    const cx=player.x, cy=player.y-18, r=player.w*0.40;
-    for(const o of obstacles){
-      if(circleRectCollide(cx,cy,r,o.x,0,OBST_W,o.topH) || circleRectCollide(cx,cy,r,o.x,o.topH+GAP,OBST_W,H-(o.topH+GAP))){ die(); break; }
+// ── LOCK LOGIC ──
+function isLocked(dayNum) {
+  if (isAdminMode) return false;
+  if (!IS_JUNE_2026) return false;
+  return dayNum < TODAY_DATE - 1;
+}
+function isFuture(dayNum) {
+  if (!IS_JUNE_2026) return false;
+  return dayNum > TODAY_DATE;
+}
+function isSunday(date) { return ((date - 1 + START_OFFSET) % 7) === 6; }
+function scoreClass(s) { return s > 0 ? "pos" : s < 0 ? "neg" : "zero"; }
+function fmtScore(s) { return (s > 0 ? "+" : "") + s; }
+
+// ── FIREBASE ──
+function fixFirebaseArrays(val) {
+  if (!val || !val.members) return;
+  MEMBERS.forEach(m => {
+    if (val.members[m] && !Array.isArray(val.members[m]))
+      val.members[m] = Object.values(val.members[m]);
+    if (!val.members[m])
+      val.members[m] = Array(DAYS_IN_JUNE).fill(null);
+    while (val.members[m].length < DAYS_IN_JUNE) val.members[m].push(null);
+  });
+}
+
+async function loadFromCloud() {
+  setSyncStatus("syncing", "⟳ LOADING...");
+  showLoadingOverlay(true, "LOADING DATA...");
+  try {
+    const snapshot = await get(ref(db, DB_PATH));
+    if (snapshot.exists()) {
+      const val = snapshot.val();
+      fixFirebaseArrays(val);
+      if (val && val.members) state = val;
     }
-    obstacles = obstacles.filter(o=>o.x>-OBST_W-50);
+    setSyncStatus("synced", "✓ CONNECTED");
+    // Realtime listener
+    onValue(ref(db, DB_PATH), (snap) => {
+      if (snap.exists()) {
+        const val = snap.val();
+        fixFirebaseArrays(val);
+        if (val && val.members && val.lastUpdated !== state.lastUpdated) {
+          state = val;
+          buildPanels(); updateTabs(); updateLeaderboard();
+          showToast("🔄 Live update!");
+        }
+      }
+    });
+  } catch(e) {
+    setSyncStatus("error", "✗ FIREBASE ERROR");
+    // Load from localStorage fallback
+    try {
+      const local = localStorage.getItem("studyData_backup");
+      if (local) { state = JSON.parse(local); showToast("📶 Offline mode", "warn"); }
+    } catch(_) {}
   }
+  buildPanels(); updateTabs(); updateLeaderboard();
+  showLoadingOverlay(false);
+
+  // Hide splash after data loads
+  setTimeout(() => {
+    document.getElementById("splash").classList.add("hidden");
+  }, 1400);
 }
 
-// --- Draw ---
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  if(bgImg){ const pattern=ctx.createPattern(bgImg,'repeat-x'); ctx.fillStyle=pattern; ctx.fillRect(0,0,W,H); }
-  else { const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#87CEEB'); g.addColorStop(1,'#f1c27d'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
-  ctx.fillStyle='#b33'; ctx.fillRect(0,H-70,W,70);
+async function saveToCloud() {
+  if (isSyncing) return;
+  isSyncing = true;
+  setSyncStatus("syncing", "⟳ SAVING...");
+  const btn = document.getElementById("sync-btn");
+  if (btn) btn.disabled = true;
+  state.lastUpdated = Date.now();
+  try {
+    // Save to localStorage as backup
+    localStorage.setItem("studyData_backup", JSON.stringify(state));
+    await set(ref(db, DB_PATH), state);
+    setSyncStatus("synced", `✓ SAVED ${new Date().toLocaleTimeString()}`);
+  } catch(e) {
+    setSyncStatus("error", "✗ SAVE FAILED");
+    showToast("Save failed! Locally backed up.", "err");
+  }
+  if (btn) btn.disabled = false;
+  isSyncing = false;
+}
 
-  for(let o of obstacles){
-    const topH=Math.round(o.topH), bottomY=topH+GAP, bottomH=H-bottomY-70;
-    if(gfImg){ drawCover(gfImg,Math.round(o.x),0,OBST_W,topH); drawCover(gfImg,Math.round(o.x),bottomY,OBST_W,bottomH);}
-    else { ctx.fillStyle='#8b3'; ctx.fillRect(Math.round(o.x),0,OBST_W,topH); ctx.fillRect(Math.round(o.x),bottomY,OBST_W,bottomH);}
+async function manualSync() {
+  await saveToCloud();
+  showToast("SYNCED!");
+}
+
+// ── SCORE CALC ──
+function calcScore(member) {
+  return (state.members[member] || []).reduce((sum, d) => {
+    if (d === "C") return sum + 2;
+    if (d === "I") return sum - 5;
+    return sum;
+  }, 0);
+}
+function calcStats(member) {
+  const days = state.members[member] || [];
+  return {
+    complete: days.filter(d => d === "C").length,
+    incomplete: days.filter(d => d === "I").length,
+    blank: days.filter(d => d === null).length
+  };
+}
+
+// ── BUILD UI ──
+function buildPanels() {
+  const container = document.getElementById("panels");
+  container.innerHTML = "";
+  MEMBERS.forEach((member, mi) => {
+    const panel = document.createElement("div");
+    panel.className = `member-panel${mi === activeTab ? " active" : ""}`;
+    panel.id = `panel-${mi}`;
+    panel.innerHTML = buildPanelHTML(member, mi);
+    container.appendChild(panel);
+  });
+}
+
+function buildPanelHTML(member, mi) {
+  const score = calcScore(member);
+  const stats = calcStats(member);
+  const sc = scoreClass(score);
+  const status = score >= 10 ? "CHAMPION" : score >= 0 ? "ON TRACK" : "DANGER ZONE";
+  const lockedCount = IS_JUNE_2026 ? Math.max(0, TODAY_DATE - 2) : 0;
+  const lockBar = (lockedCount > 0 && !isAdminMode)
+    ? `<div class="lock-info">🔒 June 1–${lockedCount} LOCKED (anti-cheat)</div>`
+    : (isAdminMode ? `<div class="lock-info" style="border-color:rgba(255,171,0,0.3);background:rgba(255,171,0,0.07);color:var(--amber)">⚡ ADMIN MODE — Sab din editable hain</div>` : "");
+
+  let cells = "";
+  for (let i = 0; i < START_OFFSET; i++) cells += `<div class="cal-cell empty"></div>`;
+  for (let d = 1; d <= DAYS_IN_JUNE; d++) {
+    const val = (state.members[member] || [])[d - 1];
+    const future = isFuture(d);
+    const locked = isLocked(d);
+    const isToday = IS_JUNE_2026 && d === TODAY_DATE;
+    const isSun = isSunday(d);
+    let cls = "cal-cell";
+    if (future) cls += " future";
+    else if (locked) { cls += " locked"; if (isAdminMode) cls += " admin-override"; }
+    if (isToday) cls += " today";
+    if (isSun) cls += " sunday sunday-lb";
+    if (val === "C") cls += " complete";
+    else if (val === "I") cls += " incomplete";
+    const mark = val === "C" ? "C" : val === "I" ? "I" : "";
+    const clickable = !future && (!locked || isAdminMode);
+    const clickHandler = clickable ? `onclick="window._toggleDay('${member}',${d-1})"` : "";
+    cells += `<div class="${cls}" ${clickHandler} id="cell-${mi}-${d-1}">
+      <span class="date-num">${d}</span>
+      <span class="day-mark" id="mark-${mi}-${d-1}">${mark}</span>
+    </div>`;
   }
 
-  if(player.faceImg){ const size=player.w*0.9;
-    ctx.save(); ctx.translate(player.x,player.y-18); ctx.beginPath(); ctx.arc(0,0,size/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
-    ctx.drawImage(player.faceImg,-size/2,-size/2,size,size); ctx.restore();
+  return `
+    <div class="score-summary ${sc}" id="summary-${mi}">
+      <div class="score-name">${member}</div>
+      <div class="score-right">
+        <div class="score-val ${sc}" id="scoreval-${mi}">${fmtScore(score)}</div>
+        <div class="score-status" id="status-${mi}">${status}</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val c-val" id="stat-c-${mi}">${stats.complete}</div><div class="stat-lbl">COMPLETE</div></div>
+      <div class="stat-box"><div class="stat-val i-val" id="stat-i-${mi}">${stats.incomplete}</div><div class="stat-lbl">INCOMPLETE</div></div>
+      <div class="stat-box"><div class="stat-val b-val" id="stat-b-${mi}">${stats.blank}</div><div class="stat-lbl">REMAINING</div></div>
+    </div>
+    ${lockBar}
+    <div class="hint-bar">TAP: blank → C (+2) → I (−5) → blank &nbsp;|&nbsp; SUN = Leaderboard day</div>
+    <div class="cal-header">
+      <div class="cal-day-name">MON</div><div class="cal-day-name">TUE</div>
+      <div class="cal-day-name">WED</div><div class="cal-day-name">THU</div>
+      <div class="cal-day-name">FRI</div><div class="cal-day-name">SAT</div>
+      <div class="cal-day-name sun">SUN</div>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot c"></div>Complete</div>
+      <div class="legend-item"><div class="legend-dot i"></div>Incomplete</div>
+      <div class="legend-item"><div class="legend-dot blank"></div>Blank</div>
+      <div class="legend-item"><div class="legend-dot lk"></div>Locked</div>
+    </div>
+  `;
+}
+
+function updateMemberUI(mi) {
+  const member = MEMBERS[mi];
+  const score = calcScore(member);
+  const stats = calcStats(member);
+  const sc = scoreClass(score);
+  const status = score >= 10 ? "CHAMPION" : score >= 0 ? "ON TRACK" : "DANGER ZONE";
+  const summary = document.getElementById(`summary-${mi}`);
+  if (summary) {
+    summary.className = `score-summary ${sc}`;
+    document.getElementById(`scoreval-${mi}`).className = `score-val ${sc}`;
+    document.getElementById(`scoreval-${mi}`).textContent = fmtScore(score);
+    document.getElementById(`status-${mi}`).textContent = status;
+  }
+  const sc_el = document.getElementById(`stat-c-${mi}`);
+  if (sc_el) {
+    sc_el.textContent = stats.complete;
+    document.getElementById(`stat-i-${mi}`).textContent = stats.incomplete;
+    document.getElementById(`stat-b-${mi}`).textContent = stats.blank;
+  }
+  (state.members[member] || []).forEach((val, di) => {
+    const cell = document.getElementById(`cell-${mi}-${di}`);
+    const mark = document.getElementById(`mark-${mi}-${di}`);
+    if (!cell) return;
+    const d = di + 1;
+    const locked = isLocked(d);
+    const future = isFuture(d);
+    let cls = "cal-cell";
+    if (future) cls += " future";
+    else if (locked) { cls += " locked"; if (isAdminMode) cls += " admin-override"; }
+    if (IS_JUNE_2026 && d === TODAY_DATE) cls += " today";
+    if (isSunday(d)) cls += " sunday sunday-lb";
+    if (val === "C") cls += " complete";
+    else if (val === "I") cls += " incomplete";
+    cell.className = cls;
+    const clickable = !future && (!locked || isAdminMode);
+    cell.onclick = clickable ? () => window._toggleDay(member, di) : null;
+    mark.textContent = val === "C" ? "C" : val === "I" ? "I" : "";
+  });
+}
+
+function updateTabs() {
+  MEMBERS.forEach((member, mi) => {
+    const score = calcScore(member);
+    const el = document.getElementById(`tscore-${mi}`);
+    if (el) { el.className = `tab-score ${scoreClass(score)}`; el.textContent = fmtScore(score); }
+  });
+}
+
+function updateLeaderboard() {
+  const scores = MEMBERS.map(m => ({ name: m, score: calcScore(m) })).sort((a, b) => b.score - a.score);
+  const maxAbs = Math.max(...scores.map(s => Math.abs(s.score)), 1);
+  const medals = ["🥇","🥈","🥉"];
+  document.getElementById("leaderboard").innerHTML = scores.map((s, i) => {
+    const barW = Math.round((Math.abs(s.score) / maxAbs) * 100);
+    const sc = scoreClass(s.score);
+    return `<div class="lb-row rank-${i+1}">
+      <div class="lb-medal">${medals[i]}</div>
+      <div class="lb-name">${s.name}</div>
+      <div class="lb-pts ${sc}">${fmtScore(s.score)}</div>
+      <div class="lb-bar-bg"></div>
+      <div class="lb-bar ${sc}" style="width:${barW}%"></div>
+    </div>`;
+  }).join("");
+  const loser = scores[scores.length - 1];
+  document.getElementById("penalty-name").textContent = loser.name.toUpperCase();
+  document.getElementById("penalty-desc").textContent = loser.score < 0
+    ? `Score: ${loser.score} — TREAT DENA HOGA! 🍕`
+    : `Score: ${fmtScore(loser.score)} — Sab safe hain abhi 😅`;
+}
+
+// ── SECRET ADMIN TRIGGER ──
+function handleAdityaTabClick() {
+  adityaClickCount++;
+  clearTimeout(adityaClickTimer);
+  if (adityaClickCount === 4) {
+    adityaClickCount = 0;
+    openAdminModal();
   } else {
-    ctx.save(); ctx.translate(player.x,player.y-18); ctx.fillStyle='#ffd27f'; ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#333'; ctx.font='18px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('RKS',0,0); ctx.restore();
+    adityaClickTimer = setTimeout(() => { adityaClickCount = 0; }, 2000);
   }
 }
 
-// --- Loop ---
-let lastT=0;
-function loop(t){ const dt=Math.min(0.033,(t-lastT)/1000); lastT=t; update(dt); draw(); requestAnimationFrame(loop); }
+function openAdminModal() {
+  if (isAdminMode) { logoutAdmin(); }
+  else {
+    document.getElementById("admin-modal").classList.add("open");
+    document.getElementById("admin-pin-input").value = "";
+    setTimeout(() => document.getElementById("admin-pin-input").focus(), 100);
+  }
+}
 
-// --- Load assets ---
-(async function(){
-  try{ player.faceImg = await loadImage('assets/rks_face.png'); } catch(e){ player.faceImg=null; }
-  try{ gfImg = await loadImage('assets/gf_full.png'); } catch(e){ gfImg=null; }
-  try{ bgImg = await loadImage('assets/bg.png'); } catch(e){ bgImg=null; }
-  requestAnimationFrame(loop);
-})();
+function confirmAdminPin() {
+  const entered = document.getElementById("admin-pin-input").value;
+  if (entered === ADMIN_PIN) {
+    isAdminMode = true;
+    document.getElementById("admin-modal").classList.remove("open");
+    document.getElementById("admin-badge-header").style.display = "block";
+    buildPanels(); updateTabs();
+    showToast("ADMIN MODE ON! (1 min auto-logout)", "warn");
+    clearTimeout(logoutTimeout);
+    logoutTimeout = setTimeout(logoutAdmin, 60000);
+  } else {
+    showToast("GALAT PIN!", "err");
+    document.getElementById("admin-pin-input").value = "";
+    document.getElementById("admin-pin-input").focus();
+  }
+}
+
+function logoutAdmin() {
+  isAdminMode = false;
+  document.getElementById("admin-badge-header").style.display = "none";
+  buildPanels(); updateTabs();
+  showToast("Admin automatically logged out!");
+}
+
+function closeAdminModal() {
+  document.getElementById("admin-modal").classList.remove("open");
+}
+
+// ── TOGGLE DAY ──
+window._toggleDay = async function(member, dayIndex) {
+  const dayNum = dayIndex + 1;
+  if (isLocked(dayNum) && !isAdminMode) { showToast(`🔒 June ${dayNum} locked!`, "lock"); return; }
+  if (isFuture(dayNum)) { showToast("Future date!", "warn"); return; }
+  const cur = (state.members[member] || [])[dayIndex];
+  const next = cur === null ? "C" : cur === "C" ? "I" : null;
+  state.members[member][dayIndex] = next;
+  updateMemberUI(MEMBERS.indexOf(member));
+  updateLeaderboard();
+  updateTabs();
+  const msg = next === "C" ? "+2 pts!" : next === "I" ? "-5 pts" : "Cleared";
+  showToast(isAdminMode ? `⚡ ${msg}` : msg);
+  await saveToCloud();
+};
+
+window.switchTab = function(idx) {
+  if (idx === 0) handleAdityaTabClick();
+  activeTab = idx;
+  MEMBERS.forEach((_, i) => {
+    document.getElementById(`tab-${i}`).classList.toggle("active", i === idx);
+    document.getElementById(`panel-${i}`).classList.toggle("active", i === idx);
+  });
+};
+
+window.manualSync = manualSync;
+window.confirmAdminPin = confirmAdminPin;
+window.closeAdminModal = closeAdminModal;
+
+window.exportData = function() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "study_challenge_june2026_backup.json";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast("BACKUP DOWNLOADED!");
+};
+
+window.openImport = function() {
+  document.getElementById("import-modal").classList.add("open");
+  document.getElementById("import-text").value = "";
+};
+window.closeImport = function() {
+  document.getElementById("import-modal").classList.remove("open");
+};
+window.importData = async function() {
+  const txt = document.getElementById("import-text").value.trim();
+  if (!txt) { showToast("Kuch paste karo!", "warn"); return; }
+  try {
+    const parsed = JSON.parse(txt);
+    if (!parsed.members) throw new Error("Invalid");
+    state = parsed;
+    window.closeImport();
+    buildPanels(); updateTabs(); updateLeaderboard();
+    showToast("RESTORED!");
+    await saveToCloud();
+  } catch(e) { showToast("INVALID DATA!", "err"); }
+};
+
+// ── HELPERS ──
+function setSyncStatus(cls, text) {
+  const el = document.getElementById("sync-status");
+  el.className = `sync-status ${cls}`; el.textContent = text;
+}
+function showLoadingOverlay(show, text = "LOADING...") {
+  document.getElementById("loading-overlay").classList.toggle("show", show);
+  document.getElementById("loading-text").textContent = text;
+}
+let toastTimer;
+function showToast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast show${type ? " " + type : ""}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+// ── OFFLINE DETECTION ──
+function updateOnlineStatus() {
+  document.getElementById("offline-bar").classList.toggle("show", !navigator.onLine);
+}
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+updateOnlineStatus();
+
+// ── INIT ──
+loadFromCloud();
+</script>
+
+<!-- ── PWA: Service Worker + Install Prompt ── -->
+<script>
+// PWA Install Prompt
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+window.installPWA = async function() {
+  if (!deferredPrompt) {
+    // iOS/Safari instructions
+    alert('📱 iOS par install karne ke liye:\n\nSafari mein open karo → Share button (⬆️) → "Add to Home Screen" tap karo');
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('install-banner').classList.remove('show');
+  }
+  deferredPrompt = null;
+};
+
+window.dismissInstall = function() {
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('pwa_dismissed', '1');
+};
+
+// Check if already dismissed
+if (localStorage.getItem('pwa_dismissed')) {
+  document.getElementById('install-banner').style.display = 'none';
+}
+
+// Check if already installed (standalone mode)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+  document.getElementById('install-banner').style.display = 'none';
+}
+
+// ── Inline Service Worker (offline support) ──
+if ('serviceWorker' in navigator) {
+  const swCode = `
+const CACHE = 'studyx-v1';
+const ASSETS = ['./', './logo.png', 'https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {}))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
+});
+`;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(() => {});
+}
 </script>
 </body>
 </html>
+
