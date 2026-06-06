@@ -13,29 +13,8 @@
 <meta name="theme-color" content="#0a0a0f">
 <meta name="description" content="Study Challenge June 2026 – Aditya, Pratik, Amarjeet">
 
-<!-- PWA Manifest (inline) -->
-<script>
-const manifestData = {
-  name: "StudyX Progress",
-  short_name: "StudyX",
-  description: "Study Challenge June 2026 Tracker",
-  start_url: "./",
-  display: "standalone",
-  background_color: "#0a0a0f",
-  theme_color: "#e94560",
-  orientation: "portrait-primary",
-  icons: [
-    { src: "logo.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
-    { src: "logo.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
-  ]
-};
-const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-const manifestURL = URL.createObjectURL(blob);
-const link = document.createElement('link');
-link.rel = 'manifest';
-link.href = manifestURL;
-document.head.appendChild(link);
-</script>
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
 
 <!-- Apple Touch Icon (logo.png se) -->
 <link rel="apple-touch-icon" href="logo.png">
